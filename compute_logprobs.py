@@ -25,10 +25,14 @@ def main():
     model_args, data_args = parser.parse_args_into_dataclasses()
 
     model = AutoModelForCausalLM.from_pretrained(
+<<<<<<< Updated upstream
         model_args.model_name_or_path,
         torch_dtype=torch.bfloat16,
         attn_implementation="flash_attention_2",
     )
+=======
+        model_args.model_name_or_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2")
+>>>>>>> Stashed changes
     model = model.to(device)
     model = torch.compile(model)
 
@@ -47,8 +51,12 @@ def main():
         data_dir="./data",
         tokenizer=tokenizer,
         max_length=data_args.max_seq_length,
+<<<<<<< Updated upstream
         use_chat_format=True,
         chat_format="other",
+=======
+        use_chat_format=True, chat_format="other")
+>>>>>>> Stashed changes
     )
 
     data_collator = DataCollatorForSeq2Seq(
