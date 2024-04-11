@@ -55,6 +55,7 @@ def main():
     )
 
     train_lengths = torch.tensor([x["input_ids"].shape[0] for x in train_dataset])
+    valid_lengths = torch.tensor([len(x["input_ids"]) for x in analysis_dataset])
 
     pattern = "logprobs-valid*.pt"
     # pattern = "mean-logprobs-valid*.pt"
@@ -72,6 +73,10 @@ def main():
         )
     )
     chart.save("figures/length-logprob-corr.png")
+
+    import pdb
+
+    pdb.set_trace()
 
 
 if __name__ == "__main__":

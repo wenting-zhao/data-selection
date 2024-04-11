@@ -25,19 +25,16 @@ def main():
     model_args, data_args = parser.parse_args_into_dataclasses()
 
     model = AutoModelForCausalLM.from_pretrained(
-<<<<<<< Updated upstream
-        model_args.model_name_or_path, torch_dtype=torch.bfloat16
+        model_args.model_name_or_path,
+        torch_dtype=torch.bfloat16,
+        attn_implementation="flash_attention_2",
     )
-=======
-        model_args.model_name_or_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2")
->>>>>>> Stashed changes
     model = model.to(device)
     model = torch.compile(model)
 
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
     tokenizer.pad_token = tokenizer.eos_token
 
-<<<<<<< Updated upstream
     train_dataset = get_training_dataset(
         data_args.train_files,
         tokenizer=tokenizer,
@@ -50,20 +47,9 @@ def main():
         data_dir="./data",
         tokenizer=tokenizer,
         max_length=data_args.max_seq_length,
-        use_chat_format=False,
+        use_chat_format=True,
+        chat_format="other",
     )
-=======
-    train_dataset = get_training_dataset(data_args.train_files,
-                                         tokenizer=tokenizer,
-                                         max_seq_length=data_args.max_seq_length,
-                                         sample_percentage=data_args.percentage,
-                                         seed=data_args.sample_data_seed)
-    analysis_dataset = get_dataset(data_args.analysis_dataset,
-                                   data_dir="./data",
-                                   tokenizer=tokenizer,
-                                   max_length=data_args.max_seq_length,
-                                   use_chat_format=True, chat_format="other")
->>>>>>> Stashed changes
 
     data_collator = DataCollatorForSeq2Seq(
         tokenizer,
