@@ -60,7 +60,7 @@ def main():
     # pattern = "mean-logprobs-valid*.pt"
     logprobs, val_idxs = get_logprobs(pattern)
 
-    df = pd.DataFrame({"Length": train_lengths, "LogProb": logprobs[0]})
+    df = pd.DataFrame({"Length": train_lengths, "LogProb": logprobs[10]})
     chart = (
         alt.Chart(df.sample(n=5000, random_state=1234))
         .mark_point()
