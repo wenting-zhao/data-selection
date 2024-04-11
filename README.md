@@ -17,3 +17,8 @@ bash scripts/download_training_data.sh
 ```
 bash scripts/compute_logprobs.sh
 ```
+
+3. look at logprobs and examples
+```
+bash scripts/analyze_logprobs.sh
+```
