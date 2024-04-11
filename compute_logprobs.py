@@ -39,6 +39,9 @@ class DataArguments:
     sample_data_seed: int = field(
         default=42, metadata={"help": ("The seed used for data sampling.")},
     )
+    batch_size: int = field(
+        default=16, metadata={"help": ("Batch size for inference.")},
+    )
     percentage: float = field(
         default=1.0, metadata={"help": ("Sampling percentage for each dataset")},
     )
@@ -96,16 +99,6 @@ class ModelArguments:
             )
         },
     )
-    torch_dtype: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Override the default `torch.dtype` and load the model under this dtype. If `auto` is passed, the "
-                "dtype will be automatically derived from the model's weights."
-            ),
-            "choices": ["auto", "bfloat16", "float16", "float32"],
-        },
-    )
 
 def main():
     parser = HfArgumentParser((ModelArguments, DataArguments))
@@ -141,11 +134,14 @@ def main():
         concated = []
         l = len(one["input_ids"])
         for j, two in tqdm(enumerate(train_dataset), desc=f'creating dataloader for validation example {i}'):
-            d = {"input_ids": two["input_ids"].tolist()+one["input_ids"]}
+            input_ids = two["input_ids"].tolist()+one["input_ids"]
+            if len(input_ids) > data_args.max_seq_length:
+                input_ids = input_ids[-data_args.max_seq_length:]
+            d = {"input_ids": input_ids}
             concated.append(d)
         concated = datasets.Dataset.from_list(concated)
         dataloader = DataLoader(
-            concated, collate_fn=data_collator, batch_size=16
+            concated, collate_fn=data_collator, batch_size=data_args.batch_size
         )
         logprobs = []
         mean_logprobs = []
@@ -153,11 +149,11 @@ def main():
             for key in batch:
                 batch[key] = batch[key].to(device)
             labels = batch["input_ids"].clone().detach()
+            labels[:, :-l] = -100
 
             with torch.no_grad():
                 out_logits = model(**batch, labels=labels).logits
 
-            labels[:, :-l] = -100
             shift_logits = out_logits[..., :-1, :].contiguous()
             shift_labels = labels[..., 1:].contiguous()
 
