@@ -19,12 +19,18 @@ from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 @dataclass
 class DataArguments:
-    train_files: List[str] = field(default_factory=list, metadata={
-                                   "help": "The input training data files (multiple files in glob format)."})
+    train_files: List[str] = field(
+        default_factory=list,
+        metadata={
+            "help": "The input training data files (multiple files in glob format)."
+        },
+    )
     overwrite_cache: bool = field(
-        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+        default=False,
+        metadata={"help": "Overwrite the cached training and evaluation sets"},
     )
     preprocessing_num_workers: Optional[int] = field(
         default=None,
@@ -33,25 +39,26 @@ class DataArguments:
     max_seq_length: Optional[int] = field(
         default=None,
         metadata={
-            "help": ("The maximum total input sequence length after tokenization. Sequences longer than this will be truncated,")
+            "help": (
+                "The maximum total input sequence length after tokenization. Sequences longer than this will be truncated,"
+            )
         },
     )
     sample_data_seed: int = field(
-        default=42, metadata={"help": ("The seed used for data sampling.")},
+        default=42,
+        metadata={"help": ("The seed used for data sampling.")},
     )
     batch_size: int = field(
-        default=16, metadata={"help": ("Batch size for inference.")},
+        default=16,
+        metadata={"help": ("Batch size for inference.")},
     )
     percentage: float = field(
-        default=1.0, metadata={"help": ("Sampling percentage for each dataset")},
+        default=1.0,
+        metadata={"help": ("Sampling percentage for each dataset")},
     )
     analysis_dataset: str = field(
         default="mmlu",
-        metadata={
-            "help": (
-                "The dataset to use for analysis mode. "
-            )
-        },
+        metadata={"help": ("The dataset to use for analysis mode. ")},
     )
 
 
@@ -70,25 +77,34 @@ class ModelArguments:
         },
     )
     config_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
         metadata={
-            "help": "Where do you want to store the pretrained models downloaded from huggingface.co"},
+            "help": "Where do you want to store the pretrained models downloaded from huggingface.co"
+        },
     )
     use_fast_tokenizer: bool = field(
         default=False,
         metadata={
-            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
     )
     model_revision: str = field(
         default="main",
         metadata={
-            "help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+            "help": "The specific model version to use (can be a branch name, tag name or commit id)."
+        },
     )
     use_auth_token: bool = field(
         default=False,
@@ -100,27 +116,33 @@ class ModelArguments:
         },
     )
 
+
 def main():
     parser = HfArgumentParser((ModelArguments, DataArguments))
     model_args, data_args = parser.parse_args_into_dataclasses()
 
     model = AutoModelForCausalLM.from_pretrained(
-        model_args.model_name_or_path, torch_dtype=torch.bfloat16)
+        model_args.model_name_or_path, torch_dtype=torch.bfloat16
+    )
     model = model.to(device)
 
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
     tokenizer.pad_token = tokenizer.eos_token
 
-    train_dataset = get_training_dataset(data_args.train_files,
-                                         tokenizer=tokenizer,
-                                         max_seq_length=data_args.max_seq_length,
-                                         sample_percentage=data_args.percentage,
-                                         seed=data_args.sample_data_seed)
-    analysis_dataset = get_dataset(data_args.analysis_dataset,
-                                   data_dir="./data",
-                                   tokenizer=tokenizer,
-                                   max_length=data_args.max_seq_length,
-                                   use_chat_format=False)
+    train_dataset = get_training_dataset(
+        data_args.train_files,
+        tokenizer=tokenizer,
+        max_seq_length=data_args.max_seq_length,
+        sample_percentage=data_args.percentage,
+        seed=data_args.sample_data_seed,
+    )
+    analysis_dataset = get_dataset(
+        data_args.analysis_dataset,
+        data_dir="./data",
+        tokenizer=tokenizer,
+        max_length=data_args.max_seq_length,
+        use_chat_format=False,
+    )
 
     data_collator = DataCollatorForSeq2Seq(
         tokenizer,
@@ -133,10 +155,13 @@ def main():
     for i, one in enumerate(analysis_dataset):
         concated = []
         l = len(one["input_ids"])
-        for j, two in tqdm(enumerate(train_dataset), desc=f'creating dataloader for validation example {i}'):
-            input_ids = two["input_ids"].tolist()+one["input_ids"]
+        for j, two in tqdm(
+            enumerate(train_dataset),
+            desc=f"creating dataloader for validation example {i}",
+        ):
+            input_ids = two["input_ids"].tolist() + one["input_ids"]
             if len(input_ids) > data_args.max_seq_length:
-                input_ids = input_ids[-data_args.max_seq_length:]
+                input_ids = input_ids[-data_args.max_seq_length :]
             d = {"input_ids": input_ids}
             concated.append(d)
         concated = datasets.Dataset.from_list(concated)
@@ -165,5 +190,6 @@ def main():
         torch.save(logprobs, f"results/logprobs-valid{i}.pt")
         torch.save(mean_logprobs, f"results/mean-logprobs-valid{i}.pt")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

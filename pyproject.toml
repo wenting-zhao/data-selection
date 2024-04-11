@@ -1,0 +1,21 @@
+[project]
+name = "data-selection"
+version = "0.0.0"
+description = "simple methods for data selection"
+authors = [
+    {name = "Wenting Zhao", email = "wzhao@cs.cornell.edu"},
+    {name = "Justin T Chiu", email = "chiu.justin.t@gmail.com"},
+]
+dependencies = [
+    "torch",
+    "datasets",
+    "numpy",
+    "transformers",
+    "evaluate",
+    "tqdm",
+    "pandas",
+]
+requires-python = "~=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
