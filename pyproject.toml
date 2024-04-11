@@ -15,6 +15,9 @@ dependencies = [
     "tqdm",
     "pandas",
     "huggingface_hub[hf_transfer]",
+    # viz
+    "altair",
+    "vl-convert-python",
 ]
 requires-python = "~=3.11"
 readme = "README.md"

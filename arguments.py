@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 from dataclasses import dataclass, field
 
+
 @dataclass
 class DataArguments:
     train_files: List[str] = field(
@@ -96,4 +97,3 @@ class ModelArguments:
             )
         },
     )
-

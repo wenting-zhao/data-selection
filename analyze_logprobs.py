@@ -4,14 +4,17 @@ import torch
 from transformers import HfArgumentParser
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+import pandas as pd
+import altair as alt
+
 from arguments import ModelArguments, DataArguments
 from get_training_dataset import get_training_dataset
 from get_validation_dataset import get_dataset
 
 
 def get_logprobs(pattern):
-    #pattern = "logprobs-valid*.pt"
-    #pattern = "mean-logprobs-valid*.pt"
+    # pattern = "logprobs-valid*.pt"
+    # pattern = "mean-logprobs-valid*.pt"
     DIR = Path("results/")
 
     logprobs_by_problem = []
@@ -54,9 +57,21 @@ def main():
     train_lengths = torch.tensor([x["input_ids"].shape[0] for x in train_dataset])
 
     pattern = "logprobs-valid*.pt"
-    #pattern = "mean-logprobs-valid*.pt"
+    # pattern = "mean-logprobs-valid*.pt"
     logprobs, val_idxs = get_logprobs(pattern)
-    import pdb; pdb.set_trace()
+
+    df = pd.DataFrame({"Length": train_lengths, "LogProb": logprobs[0]})
+    chart = (
+        alt.Chart(df.sample(n=5000, random_state=1234))
+        .mark_point()
+        .encode(x="Length", y="LogProb", tooltip=["Length", "LogProb"])
+        .properties(
+            width=600,
+            height=400,
+            title="Correlation between training example Length and LogProb",
+        )
+    )
+    chart.save("figures/length-logprob-corr.png")
 
 
 if __name__ == "__main__":
