@@ -1,1 +1,6 @@
 results/
+__pycache__/
+
+*.zip
+
+data/

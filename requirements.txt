@@ -37,6 +37,8 @@ fsspec==2024.2.0
     #   evaluate
     #   huggingface-hub
     #   torch
+hf-transfer==0.1.6
+    # via huggingface-hub
 huggingface-hub==0.22.2
     # via
     #   datasets
